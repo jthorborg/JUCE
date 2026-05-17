@@ -96,6 +96,9 @@ void Thread::threadEntryPoint()
     if (threadName.isNotEmpty())
         setCurrentThreadName (threadName);
 
+#ifdef JUCE_TRACE_BEGIN
+    JUCE_TRACE_BEGIN
+#endif
     // This 'startSuspensionEvent' protects 'threadId' which is initialised after the platform's native 'CreateThread' method.
     // This ensures it has been initialised correctly before it reaches this point.
     if (startSuspensionEvent.wait (10000))
@@ -117,6 +120,10 @@ void Thread::threadEntryPoint()
             }
         }
     }
+
+#ifdef JUCE_TRACE_END
+    JUCE_TRACE_END(threadName.toStdString().c_str());
+#endif
 
     currentThreadHolder->value.releaseCurrentThreadStorage();
 

@@ -867,7 +867,11 @@ public:
     pointer_sized_int dispatcher (int32 opCode, VstOpCodeArguments args)
     {
         if (hasShutdown)
-            return 0;
+            return (pointer_sized_int)0;
+
+#ifdef JUCE_TRACE_BEGIN
+        return JUCE_TRACE_BEGIN
+#endif
 
         switch (opCode)
         {
@@ -915,8 +919,12 @@ public:
             case Vst2::effGetNumMidiOutputChannels: return handleGetNumMidiOutputChannels();
             case Vst2::effGetMidiKeyName:           return handleGetMidiKeyName (args);
             case Vst2::effEditIdle:                 return handleEditIdle();
-            default:                                return 0;
+            default:                                return (pointer_sized_int)0;
         }
+
+#ifdef JUCE_TRACE_END
+        JUCE_TRACE_END("VST Dispatcher");
+#endif
     }
 
     //==============================================================================

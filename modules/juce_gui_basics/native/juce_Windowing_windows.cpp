@@ -36,6 +36,7 @@
  #include <juce_audio_plugin_client/AAX/juce_AAX_Modifier_Injector.h>
 #endif
 
+
 namespace juce
 {
 
@@ -3554,6 +3555,9 @@ private:
 
     static LRESULT CALLBACK windowProc (HWND h, UINT message, WPARAM wParam, LPARAM lParam)
     {
+#ifdef JUCE_TRACE_BEGIN
+        return JUCE_TRACE_BEGIN
+#endif
         // Ensure that non-client areas are scaled for per-monitor DPI awareness v1 - can't
         // do this in peerWindowProc as we have no window at this point
         if (message == WM_NCCREATE)
@@ -3566,6 +3570,10 @@ private:
         }
 
         return DefWindowProcW (h, message, wParam, lParam);
+
+#ifdef JUCE_TRACE_END
+        JUCE_TRACE_END("Main window procedure");
+#endif
     }
 
     static void* callFunctionIfNotLocked (MessageCallbackFunction* callback, void* userData)

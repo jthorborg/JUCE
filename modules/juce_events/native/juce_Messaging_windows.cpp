@@ -159,6 +159,9 @@ private:
     //==============================================================================
     static LRESULT CALLBACK messageWndProc (HWND h, UINT message, WPARAM wParam, LPARAM lParam) noexcept
     {
+#ifdef JUCE_TRACE_BEGIN
+        return JUCE_TRACE_BEGIN 
+#endif
         if (h == juce_messageWindowHandle)
         {
             if (message == customMessageID)
@@ -166,13 +169,13 @@ private:
                 if (auto* queue = InternalMessageQueue::getInstanceWithoutCreating())
                     queue->dispatchMessages();
 
-                return 0;
+                return (LRESULT)0;
             }
 
             if (message == WM_COPYDATA)
             {
                 handleBroadcastMessage (reinterpret_cast<const COPYDATASTRUCT*> (lParam));
-                return 0;
+                return (LRESULT)0;
             }
 
             if (message == WM_SETTINGCHANGE)
@@ -180,6 +183,10 @@ private:
         }
 
         return DefWindowProc (h, message, wParam, lParam);
+
+#ifdef JUCE_TRACE_END
+        JUCE_TRACE_END("JUCE Message window procedure");
+#endif
     }
 
     static BOOL CALLBACK broadcastEnumWindowProc (HWND hwnd, LPARAM lParam)
