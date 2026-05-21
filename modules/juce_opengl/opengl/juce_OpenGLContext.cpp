@@ -662,6 +662,31 @@ public:
                 jassert (type != GL_DEBUG_TYPE_ERROR && severity != GL_DEBUG_SEVERITY_HIGH);
             }, nullptr);
         }
+       #elif JUCE_WINDOWS
+        // Workaround for an interaction between NVIDIA's threaded optimisations
+        // and plugin host HWND DPI propagation (observed in Ableton Live on
+        // high-DPI displays): without serial GL execution, the message thread's
+        // scale calculation in updateViewportSize() can race with state changes
+        // around native context creation, producing a persistent wrong viewport
+        // scale that no resize will correct.
+        //
+        // Enabling synchronous debug output forces per-call serialization, which
+        // closes the race. We suppress all message generation so the driver does
+        // not accumulate entries in its internal log; the synchronous semantics
+        // are preserved regardless. The cost is throughput equivalent to threaded
+        // optimisations being off for this context, which is acceptable for
+        // plugin editor rendering.
+        if (getOpenGLVersion() >= Version { 4, 3 } && glDebugMessageControl != nullptr)
+        {
+            if (const auto* vendor = (const char*) glGetString (GL_VENDOR);
+                vendor != nullptr && std::strstr (vendor, "NVIDIA") != nullptr)
+            {
+                glEnable (GL_DEBUG_OUTPUT);
+                glEnable (GL_DEBUG_OUTPUT_SYNCHRONOUS);
+                glDebugMessageControl (GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE,
+                                       0, nullptr, GL_FALSE);
+            }
+        }
        #endif
 
         const auto currentViewportArea = areaAndScale.get().area;
